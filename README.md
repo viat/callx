@@ -1,14 +1,16 @@
 CallX (Call eXtractor)
 ======================
 
+<pre>
 1. Overview
 2. Running CallX
-3. Compile and install Boost
-4. Compile and install the GSM library
-5. Compile and run CallX
-6. License
+2.1 Compile and install Boost
+2.2 Compile and install the GSM library
+2.3 Compile and run CallX
+3. License
+</pre>
 
-###1. Overview
+##1. Overview
 CallX is an application for the extraction of signaling and media data in
 VoIP Networks. It comes with a built-in SIP signaling traffic analyzer to
 classify callers (behavioral analysis). The signaling-based analysis consists
@@ -29,7 +31,7 @@ can be sent over the network using the TCP protocol to another application
 classification (preselection). Depending on the hardware CallX should be able
 to process several hundred calls in parallel.
 
-###2. Running CallX
+##2. Running CallX
 The source code should compile successful with GCC 4.7. It has been tested on
 Debian 7 (Wheezy) with GCC 4.7.2. To simplify this document, it is assumed that
 you are running a Debian 7 system. The prerequisites are some Boost libraries
@@ -38,30 +40,33 @@ written by Jutta Degener and Carsten Bormann.
 
 It follows a short installation guideline.
 
-###3. Compile and install Boost
-Download Boost at http://www.boost.org/ (Version >= 1.54)
+###2.1 Compile and install Boost
+Download Boost at http://www.boost.org (Version >= 1.54)
 
 You will first have to install some Debian packages:
-$ sudo apt-get install build-essential python-dev libpcap0.8-dev libpqxx3-dev 
+        sudo apt-get install build-essential python-dev libpcap0.8-dev libpqxx3-dev
+        
 There may be some more packages missing, depending on your system
 configuration.
 
-  $ ./bootstrap.sh --with-libraries=system,date_time,filesystem,regex,log,\
-    chrono,thread --prefix=/usr/local --includedir=include --libdir=lib
-  $ sudo ./b2 install --prefix=/usr/local/
+        $ ./bootstrap.sh --with-libraries=system,date_time,filesystem,regex,log,\
+        chrono,thread --prefix=/usr/local --includedir=include --libdir=lib
+        $ sudo ./b2 install --prefix=/usr/local/
 
-###4. Compile and install the GSM library
+###2.2 Compile and install the GSM library
 Download and extract the source code from http://www.quut.com/gsm (Version 1.0
 patchlevel 13). You should read the files COPYRIGHT, README and INSTALL.
-It may be sufficient if you type
-  $ make
-  $ mkdir /usr/local/include/gsm
-  $ cp inc/* /usr/local/include/gsm
-  $ cp lib/libgsm.a /usr/local/lib/
+It may be sufficient if you type:
 
-###5. Compile and run CallX
+        $ make
+        $ mkdir /usr/local/include/gsm
+        $ cp inc/* /usr/local/include/gsm
+        $ cp lib/libgsm.a /usr/local/lib/
+
+###2.3 Compile and run CallX
 Change the working directory to callx/Release and type
-  $ make all
+
+        $ make all
 
 There is an config example (src/callx.cfg). You should edit this file before
 starting the application. CallX assumes that a config file named callx.cfg is
@@ -69,10 +74,12 @@ located in the directory /etc/viat. You may specify another config file using
 the -c option.
 
 You should now be able to start the application.
-  $ ./callx [-c <config file>]
+
+        $ ./callx [-c <config file>]
+
 CallX needs the capability to set the device into promiscuous mode.
 
-+++ Check the log file! +++
+***+++ Check the log file +++***
 
 It is possible to connect to the console port using a terminal program. Be
 careful if you enable the console. There are no special safety precautions
@@ -81,7 +88,7 @@ other than the limitation to localhost.
 In case of having serious trouble compiling/running CallX send an email to
 mail@bmainka.de.
 
-###6. License
+##3. License
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
