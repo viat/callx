@@ -14,7 +14,7 @@ CallX (Call eXtractor)
 CallX is an application for the extraction of signaling and media data in
 VoIP Networks. It comes with a built-in SIP signaling traffic analyzer to
 classify callers (behavioral analysis). The signaling-based analysis consists
-of the following 6 individual analysis:
+of the following 6 individual analyses:
 - Call Attempts
 - Call Completion
 - Call Duration Average
@@ -31,6 +31,8 @@ can be sent over the network using the TCP protocol to another application
 classification (preselection). Depending on the hardware CallX should be able
 to process several hundred calls in parallel.
 
+A data flow diagram of CallX is available here: http://viat.fh-koeln.de/wp-content/uploads/2013/08/CallX-Poster-20130613.pdf
+
 ##2. Running CallX
 The source code should compile successful with GCC 4.7. It has been tested on
 Debian 7 (Wheezy) with GCC 4.7.2. To simplify this document, it is assumed that
@@ -44,6 +46,7 @@ It follows a short installation guideline.
 Download Boost at http://www.boost.org (Version >= 1.54)
 
 You will first have to install some Debian packages:
+
         sudo apt-get install build-essential python-dev libpcap0.8-dev libpqxx3-dev
         
 There may be some more packages missing, depending on your system
