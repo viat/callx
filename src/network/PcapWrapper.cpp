@@ -60,6 +60,12 @@ bool PcapWrapper::openDevice(string device) {
         return false;
     }
 
+    m_pcapLinkType = pcap_datalink(m_pcapHandle);
+    L_f
+    << "Opened device " << device.c_str() << " link type is " << m_pcapLinkType
+            << endl;
+
+
     return true;
 }
 
@@ -99,6 +105,10 @@ void PcapWrapper::breakLoop() {
 
 string PcapWrapper::getErrorMessage() const {
     return m_errBuf;
+}
+
+int PcapWrapper::getLinkType() {
+    return m_pcapLinkType;
 }
 
 } /* namespace callx */
