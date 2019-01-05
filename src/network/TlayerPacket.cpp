@@ -33,6 +33,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
+#include <pcap/sll.h>
 
 namespace callx {
 
@@ -41,10 +42,13 @@ TlayerPacket::TlayerPacket()
           m_parsedTransportlayer(false) {
 }
 
-void TlayerPacket::fill(pcap_pkthdr pcapHeader, const u_char *pcapPacket) {
+void TlayerPacket::fill(pcap_pkthdr pcapHeader, const u_char *pcapPacket, int pcapLinkType /* = 1 */) {
 
     m_parsedNetworklayer = false;
     m_parsedTransportlayer = false;
+
+    // PCAP device link type
+    m_pcapPacket.linkType = pcapLinkType;
 
     // PCAP header
     m_pcapPacket.header = pcapHeader;
@@ -59,8 +63,7 @@ void TlayerPacket::fill(pcap_pkthdr pcapHeader, const u_char *pcapPacket) {
 TlayerPacket::~TlayerPacket() {
 }
 
-bool TlayerPacket::parseNetlayer() {
-
+bool TlayerPacket::parseNetlayerEthernet() {
     // size of Ethernet header
     m_ethernetPacket.headerLen = sizeof(ether_header);
 
@@ -149,6 +152,112 @@ bool TlayerPacket::parseNetlayer() {
     // We successful parsed the network layer.
     m_parsedNetworklayer = true;
     return true;
+}
+
+bool TlayerPacket::parseNetlayerLinuxSLL() {
+
+    m_sllPacket.headerLen = SLL_HDR_LEN;
+    m_sllPacket.header = (sll_header*) m_pcapPacket.payload;
+
+    // IPv4 or IPv6
+    uint16_t etherPayloadType = ntohs(m_sllPacket.header->sll_protocol);
+    if (etherPayloadType == ETHERTYPE_IP) {
+        m_ipPacket.version = 4;
+    } else if (etherPayloadType == ETHERTYPE_IPV6) {
+        m_ipPacket.version = 6;
+    } else {
+        L_t
+        << "Ignoring packet: Neither IPv4 nor IPv6 payload type(" << ntohs(m_sllPacket.header->sll_protocol) << ").";
+        return false;
+    }
+
+    // ethernet payload size
+    m_ipPacket.payloadLen = m_pcapPacket.header.caplen
+            - m_sllPacket.headerLen;
+
+    // set etherPayloadStart pointer to the beginning of ethernet payload
+    m_sllPacket.payload = (u_char *) m_sllPacket.header
+            + m_sllPacket.headerLen;
+
+    // start of IP header is start of Ethernet payload
+    m_ipPacket.header = (ip*) m_sllPacket.payload;
+
+    if (m_ipPacket.version == 4) {
+
+        // size of ethernet payload
+        m_sllPacket.payloadLen = m_pcapPacket.payloadLen
+                - m_sllPacket.headerLen;
+
+        // size of IP header
+        m_ipPacket.headerLen = m_ipPacket.header->ip_hl * 4;
+
+        // size of IP payload
+        m_ipPacket.payloadLen = m_ipPacket.payloadLen - m_ipPacket.headerLen;
+
+        // start of IP payload
+        m_ipPacket.payload = m_sllPacket.payload + m_ipPacket.headerLen;
+
+        // network layer sanity check
+        if (m_ipPacket.headerLen + m_ipPacket.payloadLen
+                > m_sllPacket.payloadLen) {
+
+            L_t
+            << "Network layer sanity check: "
+                    << "IP packet larger than ethernet payload. Discarding packet.";
+            return false;
+        }
+
+        // convert IP addresses to string
+        inet_ntop(AF_INET, &m_ipPacket.header->ip_src.s_addr, srcIPv4TmpStr,
+                INET_ADDRSTRLEN);
+
+        inet_ntop(AF_INET, &m_ipPacket.header->ip_dst.s_addr, dstIPv4TmpStr,
+                INET_ADDRSTRLEN);
+
+        // init SocketAddress objects
+        m_srcSocketAddress.setIpAddress(
+                boost::asio::ip::address::from_string(srcIPv4TmpStr));
+        m_srcSocketAddress.setTransportProto(
+                (transportProtoEnum) m_ipPacket.header->ip_p);
+
+        m_dstSocketAddress.setIpAddress(
+                boost::asio::ip::address::from_string(dstIPv4TmpStr));
+        m_dstSocketAddress.setTransportProto(
+                (transportProtoEnum) m_ipPacket.header->ip_p);
+
+    } else if (m_ipPacket.version == 6) {
+
+//        L_t
+//        << "IPv6 not implemented.";
+        return false;
+
+    } else {
+
+        L_t
+        << "No IP data available";
+        return false;
+    }
+
+    // We successful parsed the network layer.
+    m_parsedNetworklayer = true;
+    return true;
+}
+
+bool TlayerPacket::parseNetlayer() {
+
+    // Ethernet frame
+    if (m_pcapPacket.linkType == 1) {
+	return TlayerPacket::parseNetlayerEthernet();
+    }
+
+    // Linux SLL frame
+    if (m_pcapPacket.linkType == 113) {
+	return TlayerPacket::parseNetlayerLinuxSLL();
+    }
+
+    // Unsupported frame type
+
+    return false;
 }
 
 bool TlayerPacket::parseTransportlayer() {

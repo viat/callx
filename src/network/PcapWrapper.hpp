@@ -141,10 +141,13 @@ public:
 
     static const u_int Max_Capture_Bytes = PCAP_MAX_CAPTURE_BYTES;
 
+    int getLinkType();
+
 private:
     char m_errBuf[PCAP_ERRBUF_SIZE];
     struct bpf_program m_fp; // compiled filter
     pcap_t *m_pcapHandle;
+    int m_pcapLinkType;
     unsigned long m_received;
     unsigned long m_dropped;
     pcap_stat m_pcapStats;

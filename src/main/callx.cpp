@@ -533,11 +533,15 @@ int main(int argc, char **argv) {
 	}
 
 	/* Start running. */
+#ifndef DEBUG
 	try {
+#endif
 		run(callxConfig);
+#ifndef DEBUG
 	} catch (...) {
 		L_t<< "Caught an unknown exception in run().";
 	}
+#endif
 
 	/* Delete possible PID file. */
 	if (pidFile.is_open()) {

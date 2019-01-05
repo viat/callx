@@ -54,7 +54,7 @@ inline void PcapHandler::callback(const struct pcap_pkthdr *pcapHeader,
     // Get TlyerPacket object from TlayerPacketQueue, fill it with pcap
     // header & data and push it into PcapPacketQueue object.
     if (m_tlayerPacketQueue->waitAndPop(m_tlayerPacket)) {
-        m_tlayerPacket->fill(*pcapHeader, pcapPacket);
+        m_tlayerPacket->fill(*pcapHeader, pcapPacket, m_pcapWrapper.getLinkType());
         m_pcapPacketQueue->push(move(m_tlayerPacket));
     } else {
         L_t

@@ -36,6 +36,7 @@
 
 #include <sys/types.h>
 #include <pcap.h>
+#include <pcap/sll.h>
 
 #include <net/ethernet.h>
 #include <netinet/in.h>
@@ -50,6 +51,7 @@ struct PcapPacket {
 	pcap_pkthdr header;
 	u_char payload[PcapWrapper::Max_Capture_Bytes];
 	size_t payloadLen;
+	int linkType;
 };
 
 struct GenericPacket {
@@ -61,6 +63,10 @@ struct GenericPacket {
 
 struct EthernetPacket: GenericPacket {
 	ether_header* header;
+};
+
+struct SLLPacket: GenericPacket {
+	sll_header* header;
 };
 
 struct IpPacket: GenericPacket {
@@ -88,11 +94,13 @@ public:
 	 * @param pcapHeader
 	 * @param pcapPacket
 	 */
-	void fill(pcap_pkthdr pcapHeader, const u_char *pcapPacket);
+	void fill(pcap_pkthdr pcapHeader, const u_char *pcapPacket, int pcapLinkType = 1);
 
 	/**
 	 * Parse Network Layer (IP).
 	 */
+	bool parseNetlayerEthernet();
+	bool parseNetlayerLinuxSLL();
 	bool parseNetlayer();
 
 	/**
@@ -109,6 +117,7 @@ public:
 	 * PCAP data, link layer
 	 */
 	EthernetPacket m_ethernetPacket;
+	SLLPacket m_sllPacket;
 
 	/**
 	 * Network Layer packet (IP)

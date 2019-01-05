@@ -55,7 +55,7 @@ all: callx
 callx: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -L/usr/local/lib -o "callx" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -g3 -O0 -L/usr/local/lib -o "callx" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
